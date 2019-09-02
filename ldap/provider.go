@@ -42,6 +42,15 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("LDAP_BIND_PASSWORD", ""),
+			"client_cert_path": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("LDAP_CLIENT_CERT", ""),
+			},
+			"client_cert_key_path": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("LDAP_CLIENT_CERT_KEY", ""),
 			},
 		},
 
@@ -60,12 +69,14 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	debug, _ := strconv.ParseBool(os.Getenv("LDAP_DEBUG"))
 
 	return &client{
-		host:          d.Get("host").(string),
-		port:          d.Get("port").(int),
-		useTLS:        d.Get("use_tls").(bool),
-		tlsSkipVerify: d.Get("tls_skip_verify").(bool),
-		bindDN:        d.Get("bind_dn").(string),
-		bindPasswod:   d.Get("bind_password").(string),
+		host:              d.Get("host").(string),
+		port:              d.Get("port").(int),
+		useTLS:            d.Get("use_tls").(bool),
+		tlsSkipVerify:     d.Get("tls_skip_verify").(bool),
+		bindDN:            d.Get("bind_dn").(string),
+		bindPasswod:       d.Get("bind_password").(string),
+		clientCertPath:    d.Get("client_cert_path").(string),
+		clientCertKeyPath: d.Get("client_cert_key_path").(string),
 
 		debug: debug,
 	}, nil

@@ -13,12 +13,14 @@ import (
 
 // client -
 type client struct {
-	host          string
-	port          int
-	useTLS        bool
-	tlsSkipVerify bool
-	bindDN        string
-	bindPasswod   string
+	host              string
+	port              int
+	useTLS            bool
+	tlsSkipVerify     bool
+	bindDN            string
+	bindPasswod       string
+	clientCertPath    string
+	clientCertKeyPath string
 
 	debug bool
 }
@@ -31,9 +33,19 @@ func (c *client) connect() (conn *ldapapi.Conn, err error) {
 			c.port = 636
 		}
 
+		var cfg *tls.Config
+		if c.clientCertPath != "" && c.clientCertKeyPath != "" {
+			cert, _ := tls.LoadX509KeyPair(c.clientCertPath, c.clientCertKeyPath)
+			cfg = &tls.Config{
+				InsecureSkipVerify: c.tlsSkipVerify,
+				Certificates:       []tls.Certificate{cert}}
+		} else {
+			cfg = &tls.Config{
+				InsecureSkipVerify: c.tlsSkipVerify}
+		}
+
 		conn, err = ldapapi.DialTLS("tcp",
-			fmt.Sprintf("%s:%d", c.host, c.port),
-			&tls.Config{InsecureSkipVerify: c.tlsSkipVerify})
+			fmt.Sprintf("%s:%d", c.host, c.port), cfg)
 
 	} else {
 		if c.port == -1 {
